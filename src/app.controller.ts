@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, HttpException, HttpStatus } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Headers } from '@nestjs/common';
 import { verifyWithHydra } from './verify-with-hydra';
@@ -12,14 +12,19 @@ export class AppController {
   // async getHello(@Headers() headers): Promise<any> {
   //   const accessToken = headers.authorization;
   //   const decoded = await verifyWithHydra(accessToken);
-  //   if (!decoded.data.active) throw new Error('Token expired');
+  //   if (!decoded.data.active)
+  //     throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
   //   return decoded.data;
   // }
 
   @Get()
   async getHello(@Headers() headers): Promise<any> {
     const accessToken = headers.authorization;
-    const decoded = verifyWithJwk(accessToken);
-    return decoded;
+    try {
+      const decoded = verifyWithJwk(accessToken);
+      return decoded;
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.FORBIDDEN);
+    }
   }
 }
